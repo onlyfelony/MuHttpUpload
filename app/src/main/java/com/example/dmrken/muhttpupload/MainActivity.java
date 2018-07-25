@@ -1,6 +1,5 @@
 package com.example.dmrken.muhttpupload;
 
-import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -13,10 +12,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
-
-import javax.net.ssl.HttpsURLConnection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -33,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     /**
      * 读取服务器响应数据
+     *
      * @param inputStream 服务器的输出流
      * @throws IOException 读取过程中发生的异常
      */
@@ -44,7 +44,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             outputStream.write(buffer, 0, len);
         }
         outputStream.close();
-        inputStream.close();
         String data = new String(outputStream.toByteArray());
         Logger.i("服务器响应数据： " + data);
     }
@@ -62,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
             case R.id.btn_post: {
-                posrRequest();
+                postRequest();
                 break;
             }
             default:
@@ -78,11 +77,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         TheadUtils.execute(new Runnable() {
             @Override
             public void run() {
-                try {
-                    executeGet();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                executeGet();
             }
         });
     }
@@ -91,47 +86,117 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * 执行get请求，此方法在子线程执行
      * (android不能在主线程中执行网络请求)
      */
-    private void executeGet() throws Exception {
+    private void executeGet() {
         //我们暂时使用URLConnection执行网络请求
-
+        HttpURLConnection urlConnection = null;
+        InputStream inputStream = null;
         //1.建立连接
-        URL url = new URL(Constans.URL_UPLOAD);//传入请求地址
-        HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+        URL url = null;//传入请求地址
+        try {
+            url = new URL(Constans.URL_UPLOAD);
+            // url = new URL("https://www.baidu.com");
+
+            urlConnection = (HttpURLConnection) url.openConnection();
 /*        if (urlConnection instanceof HttpsURLConnection) {
             //进行一些设置
             ((HttpsURLConnection) urlConnection).setHostnameVerifier();
             ((HttpsURLConnection) urlConnection).setSSLSocketFactory();
         }*/
-        urlConnection.setRequestMethod("GET");//默认是GET
+            urlConnection.setRequestMethod("GET");//默认是GET
 
-        //2.发送数据
-        // urlConnection.getOutputStream();//GET类型的请求不能拿到输出流
+            //2.发送数据
+            // urlConnection.getOutputStream();//GET类型的请求不能拿到输出流
 
-        urlConnection.connect();//连接服务器
+            urlConnection.connect();//连接服务器
 
-        //3.拿到响应
-        int responseCode = urlConnection.getResponseCode();
-        if (responseCode == 200) {//判断响应码
-            InputStream inputStream = urlConnection.getInputStream();
-            readServerData(inputStream);
+            //3.拿到响应
+            int responseCode = urlConnection.getResponseCode();
+            if (responseCode == 200) {//判断服务器响应码为200表示成功
+                inputStream = urlConnection.getInputStream();
+                readServerData(inputStream);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();//关闭连接
+            }
+
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
-
     }
 
     /**
-     * 处理head请求
+     * 处理HEAD请求
      */
     private void headRequest() {
+        TheadUtils.execute(new Runnable() {
+            @Override
+            public void run() {
+                executeHead();
+            }
+        });
     }
 
     private void executeHead() {
+        //我们暂时使用URLConnection执行网络请求
+        HttpURLConnection urlConnection = null;
+        InputStream inputStream = null;
+        //1.建立连接
+        URL url = null;//传入请求地址
+        try {
+              url = new URL(Constans.URL_UPLOAD);
 
+            urlConnection = (HttpURLConnection) url.openConnection();
+            urlConnection.setRequestMethod("HEAD");//HEAD服务器只能发送响应头，不能发送body，客户端也读取不到body
+
+            //2.发送数据
+            urlConnection.connect();//连接服务器
+
+            //3.拿到响应
+            int responseCode = urlConnection.getResponseCode();
+            if (responseCode == 200) {//判断服务器响应码为200表示成功
+                Map<String, List<String>> stringListMap = urlConnection.getHeaderFields();//得到服务器的所有响应头
+                Set<Map.Entry<String, List<String>>> entries = stringListMap.entrySet();// Map<String, List<String>>不能for循环
+                for (Map.Entry<String, List<String>> entry : entries) {
+
+                    String headKey = entry.getKey();
+                    List<String> headValues = entry.getValue();
+                    Logger.i("-------- Head Key: " + headKey+"---------");
+                    for (String headValue : headValues) {
+                        Logger.i("Head Value: " + headValue);
+                    }
+                }
+/*                inputStream = urlConnection.getInputStream();
+                readServerData(inputStream);*///HEAD服务器只能发送响应头，不能发送body，客户端也读取不到body
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (urlConnection != null) {
+                urlConnection.disconnect();//关闭连接
+            }
+
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     /**
-     * 处理posr请求
+     * 处理post请求
      */
-    private void posrRequest() {
+    private void postRequest() {
     }
 
     private void executePost() {
