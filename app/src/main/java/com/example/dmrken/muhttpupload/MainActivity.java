@@ -91,6 +91,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onSuccess(Response response) {
                 //
+                Logger.i("Activity接收到的响应码："+response.getResponseCode());
+                Logger.i("Activity接收到的响应数据："+response.getResult());
             }
 
             @Override

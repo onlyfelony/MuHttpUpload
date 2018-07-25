@@ -27,8 +27,8 @@ public class RequestTask implements Runnable {
         }
         Logger.i("执行请求：" + request.toString());
 
-        //----------------拿到响应
-        Response response = null;
+        // TODO 拿到响应
+        Response response = new Response(request,300,null,"This is test responseData",null);
 
         Poster.getInstance().post(new Message(response,listener));
         /**

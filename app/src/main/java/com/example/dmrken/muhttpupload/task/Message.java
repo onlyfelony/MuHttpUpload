@@ -18,8 +18,12 @@ public class Message implements Runnable {
     public void run() {
         //通过listener回调到主线程
 
-/*        //把response或者exception通过listener传给主线程
-        listener.onSuccess(response);//成功
-        listener.onFail(response.getException());//失败*/
+        //把response或者exception通过listener传给主线程
+        Exception exception = response.getException();
+        if (exception != null) {
+            listener.onFail(exception);//失败
+        } else {
+            listener.onSuccess(response);//成功
+        }
     }
 }
