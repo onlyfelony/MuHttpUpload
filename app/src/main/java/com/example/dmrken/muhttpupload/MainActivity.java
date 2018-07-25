@@ -6,6 +6,10 @@ import android.view.View;
 
 import com.alibaba.fastjson.JSON;
 import com.example.dmrken.muhttpupload.entry.UserInfo;
+import com.example.dmrken.muhttpupload.task.HttpListener;
+import com.example.dmrken.muhttpupload.task.Request;
+import com.example.dmrken.muhttpupload.task.RequestExecutor;
+import com.example.dmrken.muhttpupload.task.Response;
 import com.example.dmrken.muhttpupload.utils.Constans;
 import com.example.dmrken.muhttpupload.utils.Logger;
 import com.example.dmrken.muhttpupload.utils.TheadUtils;
@@ -30,6 +34,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.btn_get).setOnClickListener(this);
         findViewById(R.id.btn_head).setOnClickListener(this);
         findViewById(R.id.btn_post).setOnClickListener(this);
+        findViewById(R.id.btn_handler_looper).setOnClickListener(this);
 
     }
 
@@ -67,9 +72,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 postRequest();
                 break;
             }
+            case R.id.btn_handler_looper:{
+                handler_loop_test();
+                break;
+            }
             default:
                 break;
         }
+
+    }
+
+    /**
+     * 异步处理消息test
+     */
+    private void handler_loop_test() {
+        Request request = new Request("https://github.com/onlyfelony");
+        RequestExecutor.INSTANCE.execute(request, new HttpListener() {
+            @Override
+            public void onSuccess(Response response) {
+                //
+            }
+
+            @Override
+            public void onFail(Exception e) {
+
+            }
+        });
+
 
     }
 

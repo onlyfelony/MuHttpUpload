@@ -25,4 +25,12 @@
         android:layout_height="wrap_content"
         android:text="post" />
 
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/btn_handler_looper"
+        android:text="test_handler_looper"
+        android:textAllCaps="false"
+        />
+
 </LinearLayout>
